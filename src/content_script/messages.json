@@ -1,0 +1,48 @@
+{
+  "en": {
+    "app": {
+      "error": {
+        "title": "Oops...",
+        "message": "Something went wrong!\n\n{{error}}"
+      },
+      "track": {
+        "button": {
+          "simple": "track price",
+          "all": "track all"
+        },
+        "action": {
+          "add": {
+            "title": "Added",
+            "message": {
+              "one": "Product {{ pid }} is now tracked!\n\nSpace usage: {{ usage }}%",
+              "more": "Products {{ pid }} are now tracked!\n\nSpace usage: {{ usage }}%"
+            }
+          }
+        }
+      }
+    }
+  },
+  "ro": {
+    "app": {
+      "error": {
+        "title": "Hopa!",
+        "message": "Ceva nu a funcţionat\n\n{{error}}"
+      },
+      "track": {
+        "button": {
+          "simple": "urmareste pretul",
+          "all": "urmareste pretul la toate"
+        },
+        "action": {
+          "add": {
+            "title": "Adăugat",
+            "message": {
+              "one": "Produsul {{ pid }} a fost adăugat la lista de urmărire!\n\nSpațiu utilizat: {{ usage }}%",
+              "more": "Produsele {{ pid }} au fost adăugate la lista de urmărire!\n\nSpațiu utilizat: {{ usage }}%"
+            }
+          }
+        }
+      }
+    }
+  }
+}

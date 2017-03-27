@@ -2,11 +2,11 @@ import co from 'co'
 import { EmagTrackerAPI } from "../backend"
 import { StorageAPI } from "../storage"
 import { NotificationsAPI } from "../notifications"
-import { today } from "../utils"
+import { today, shortenString } from "../utils"
 import { Scanner } from "../utils/scanner"
 import { checkPriceChange } from "../utils/product"
-import { adapt } from "../utils/settings"
-import { bagdeBackgroundColor, priceChangedText } from "../utils/notifications"
+import { adapt, clean } from "../utils/settings"
+import { bagdeBackgroundColor } from "../utils/notifications"
 
 const alarmName = 'priceChecker'
 
@@ -15,10 +15,10 @@ const updateStartingPoint = (formattedDate, notify) =>
         lastCheck: formattedDate
     }).catch(reason => {
         if (notify)
-            NotificationsAPI.error(reason, 'Could not set starting point')
+            NotificationsAPI.error(reason, 'scan.error.startingPoint')
     })
 
-const updateProductsPrice = ({ notify, variationType, responseCallback }) => function* () {
+const updateProductsPrice = ({ onlineData, notify, variationType, responseCallback }) => function* () {
     try {
         const date = yield StorageAPI.getSync('lastCheck')
         const now = today()
@@ -26,43 +26,71 @@ const updateProductsPrice = ({ notify, variationType, responseCallback }) => fun
         if (now !== date.lastCheck) {
             updateStartingPoint(now, notify)
 
-            const pids = yield StorageAPI.getSync(null)
-            delete pids.lastCheck
-            delete pids.settings
+            const changed = []
+            const pids = clean(yield StorageAPI.getSync(null))
             for (const pid of Object.keys(pids)) {
-                // first try to find them in the local store
-                let product = yield StorageAPI.getLocal(pid)
-                if ($.isEmptyObject(product)) {
-                    // load product data from remote
+                let product
+                if (onlineData) {
+                    // if user favors online data, always load from remote first
                     product = yield EmagTrackerAPI.getProduct(pid)
+                    if ($.isEmptyObject(product)) {
+                        product = yield StorageAPI.getLocal(pid)
+                        if ($.isEmptyObject(product))
+                            product = {}
+                        else
+                            product = product[pid]
+                    }
                 } else {
-                    product = product[pid]
+                    // otherwise attempt to load from local first and if not found load remote
+                    product = yield StorageAPI.getLocal(pid)
+                    if ($.isEmptyObject(product))
+                        product = yield EmagTrackerAPI.getProduct(pid)
+                    else
+                        product = product[pid]
                 }
 
-                const newPrice = yield Scanner.scanProductHomepage(product)
-                const percentage = checkPriceChange(product, newPrice, variationType)
-                if (percentage) {
-                    // TODO maybe add some flag to product in local store and display change in sidebar
-                    if (notify)
-                        NotificationsAPI.info(priceChangedText(pid, product.title, percentage, variationType), 'Price change', pid)
-                    NotificationsAPI.badgeColor(bagdeBackgroundColor(variationType))
-                    NotificationsAPI.incrementBadgeCounter()
+                if ($.isEmptyObject(product))
+                    console.warn("Checker did not find product with pid: " + pid)
+                else {
+                    yield Scanner.scanProductHomepage(product, onlineData)
+                    const percentage = checkPriceChange(product, variationType)
+                    if (percentage) {
+                        changed.push(pid)
+                        if (notify)
+                            NotificationsAPI.info('scan.title', 'scan.priceChanged.' + variationType, {
+                                pid,
+                                title: shortenString(product.title),
+                                variation: percentage
+                            }, pid)
+                        NotificationsAPI.badgeColor(bagdeBackgroundColor(variationType))
+                        NotificationsAPI.incrementBadgeCounter()
+                    }
                 }
             }
+
+            let variation
+            if (changed.length)
+                variation = variationType
+            StorageAPI.setLocal({
+                trending: { variation, changed }
+            })
+
             if (notify && !$.isEmptyObject(pids))
-                    NotificationsAPI.info('Scan finished', 'Scheduled scan')
-            responseCallback()
+                    NotificationsAPI.info('scan.title', 'scan.finished')
+            if (typeof responseCallback === "function")
+                responseCallback()
         }
+
         // set scan date if first run
-        if ($.isEmptyObject(date)) {
+        if ($.isEmptyObject(date))
             updateStartingPoint(now, notify)
-        }
     } catch (e) {
         if (notify)
-            NotificationsAPI.error(e, 'Could not perform scheduled scan')
-        console.log('Could not perform scheduled scan ' + e)
+            NotificationsAPI.error(e, 'scan.error.default')
+        if (typeof responseCallback === "function")
+            responseCallback()
+        console.warn('Could not perform scheduled scan ' + e)
         console.log(e.stack)
-        responseCallback()
     }
 }
 
