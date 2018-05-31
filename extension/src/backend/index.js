@@ -5,24 +5,16 @@ const EmagTrackerAPI = {
     },
     addProduct(product) {
         return $.ajax({
-            url: googleScriptUrl,
+            url: "https://us-central1-emag-price-tracker.cloudfunctions.net/addProduct",
             type: "POST",
-            crossDomain: true,
             contentType: "application/json",
-            // contentType: "x-www-form-urlencoded",
-            data: {
-                a: "1",
-                b: product.pid,
-                c: product.title,
-                d: product.url,
-                e: product.imgUrl,
-                f: product.price
-            },
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Origin, X-Requested-With'
-            }
+            data: JSON.stringify({
+                "pid": product.pid,
+                "title": product.title,
+                "url": product.url,
+                "imgUrl": product.imgUrl,
+                "price": product.price
+            })
         })
     },
     updatePrice(pid, newPrice) {

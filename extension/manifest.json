@@ -44,6 +44,7 @@
   ],
   "permissions": [
     "https://script.google.com/",
+    "https://us-central1-emag-price-tracker.cloudfunctions.net/*",
     "tabs",
     "storage",
     "notifications",
