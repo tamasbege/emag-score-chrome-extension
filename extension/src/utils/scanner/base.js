@@ -31,22 +31,22 @@ export default class Base {
     constructor(container, { selector, products, sourceClass, sourceTitle=I18N.translate('track.button.simple'),
             loaderClass="loading-grid", loaderPadding=35 }) {
 
-        this.sourceClass = sourceClass
-        this.sourceTitle = sourceTitle
-        this.loaderClass = loaderClass
-        this.loaderPadding = loaderPadding
-        this.$container = $(container)
+        this.sourceClass = sourceClass;
+        this.sourceTitle = sourceTitle;
+        this.loaderClass = loaderClass;
+        this.loaderPadding = loaderPadding;
+        this.$container = $(container);
         if (products && products.length) {
-            this.data = products
+            this.data = products;
             this._addTrackButton()
         } else {
-            this._findTarget(selector)
+            this._findTarget(selector);
             if (this.$target) {
                 this.data = {
                     price: this._extractPrice(this.$container)
-                }
-                this._extractPid()
-                this._extractLink()
+                };
+                this._extractPid();
+                this._extractLink();
                 this._addTrackButton()
             }
         }
@@ -63,8 +63,8 @@ export default class Base {
     }
 
     _showLoader() {
-        this.$source.empty()
-        this.$source.css("padding-left", "10px")
+        this.$source.empty();
+        this.$source.css("padding-left", "10px");
         this.$source.append($('<img/>', {
             src: chrome.extension.getURL("res/images/ajax-loader.gif"),
             class: this.loaderClass
@@ -72,8 +72,8 @@ export default class Base {
     }
 
     _hideLoader() {
-        this.$source.text(this.sourceTitle)
-        this.$source.css("padding-left", this.loaderPadding + "px")
+        this.$source.text(this.sourceTitle);
+        this.$source.css("padding-left", this.loaderPadding + "px");
         this.$source.append(this._icon())
     }
 
@@ -90,7 +90,7 @@ export default class Base {
     }
 
     _findTarget(selector) {
-        const target = $(selector, this.$container).first()
+        const target = $(selector, this.$container).first();
         if (target.length)
             this.$target = target
     }
@@ -100,15 +100,15 @@ export default class Base {
     }
 
     _trackProduct() {
-        this._showLoader()
+        this._showLoader();
 
         track(toArray(this.data))
             .then(({ problems, pids, bytesInUse }) => {
                 if (problems.length) {
-                    swal(I18N.translate('error.title'), I18N.translate('error.message', { error: problems }), "error")
+                    swal(I18N.translate('error.title'), I18N.translate('error.message', { error: problems }), "error");
                     this._hideLoader()
                 } else {
-                    console.log("Product(s) " + pids + " are now tracked:" + JSON.stringify(this.data))
+                    console.log("Product(s) " + pids + " are now tracked:" + JSON.stringify(this.data));
 
                     swal(
                         I18N.translate('track.action.add.title'),
@@ -117,7 +117,7 @@ export default class Base {
                             usage: Math.round(bytesInUse * 10000 / 102400) / 100
                         }),
                         "success"
-                    )
+                    );
                     this._trackProductDone()
                 }
             })
@@ -140,7 +140,7 @@ export default class Base {
                             click: e => this._trackProduct()
                         })
                         .append(this._icon())
-                        .insertAfter(this.$target)
+                        .insertAfter(this.$target);
                         resolve(this.data)
                     } else {
                         resolve()

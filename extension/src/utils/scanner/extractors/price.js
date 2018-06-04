@@ -6,17 +6,17 @@
  */
 export default ( { selector, failFast=true }) => target => {
     target.prototype._extractPrice = container => {
-        const price = $(selector, container).first()
+        const price = $(selector, container).first();
         if (price.length) {
             const matches = price
                 .html()
                 // apply pattern matching
-                .match(/\d+(?:\d+)?/g)
+                .match(/\d+(?:\d+)?/g);
             if (matches && matches.length)
                 // concatenate numbers as string e.g. "ddddd.ddd"
                 return matches.reduce((acc, val, idx, arr) => {
-                    if (arr.length == 1) return val
-                    else if (idx == arr.length - 1) return acc + "." + val
+                    if (arr.length === 1) return val;
+                    else if (idx === arr.length - 1) return acc + "." + val;
                     else return acc + val
                 }, "")
         }
