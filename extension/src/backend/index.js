@@ -1,11 +1,11 @@
-const firebaseCloudBaseUrl = "https://us-central1-emag-price-tracker.cloudfunctions.net/";
+const firebaseCloudUrl = "https://us-central1-emag-price-tracker.cloudfunctions.net/";
 const EmagTrackerAPI = {
     getProduct(pid) {
-        return $.get(firebaseCloudBaseUrl + "getProduct?pid=" + pid)
+        return $.get(firebaseCloudUrl + "getProduct?pid=" + pid);
     },
     addProduct(product) {
         return $.ajax({
-            url: firebaseCloudBaseUrl + "addProduct",
+            url: firebaseCloudUrl + "addProduct",
             type: "POST",
             contentType: "application/json",
             data: JSON.stringify({
@@ -19,7 +19,7 @@ const EmagTrackerAPI = {
     },
     updatePrice(pid, newPrice) {
         return $.ajax({
-            url: firebaseCloudBaseUrl + 'updateProduct',
+            url: firebaseCloudUrl + 'updateProduct',
             type: "POST",
             contentType: "application/json",
             data: JSON.stringify({
