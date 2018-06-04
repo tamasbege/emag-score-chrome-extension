@@ -13,15 +13,15 @@ import { PRICE_INCREASE, PRICE_DECREASE } from "./priceChangeType"
  */
 const updatePrice = (product, price) => {
     if (!product.history)
-        product.history = {}
-    product.history[today()] = price
+        product.history = {};
+    product.history[today()] = price;
     StorageAPI
         .setLocal(getProductObject(product))
         .catch(reason => {
-            console.warn("Could not update price in local store: " + this.pid)
+            console.warn("Could not update price in local store: " + this.pid);
             console.warn(reason)
         })
-}
+};
 
 /**
  * Performs the following for each product:
@@ -36,52 +36,52 @@ const updatePrice = (product, price) => {
  */
 const track = (products, onlineData) =>
     co(function *() {
-        let bytesInUse, productProblems, remote = {}
-        const problems = [], pids = [], now = today()
+        let bytesInUse, productProblems, remote = {};
+        const problems = [], pids = [], now = today();
         for (let product of products) {
-            productProblems = []
+            productProblems = [];
 
             try {
                 remote = yield EmagTrackerAPI.getProduct(product.pid)
             } catch (e) {
-                problems.push("Could not get product from remote: " + product.pid)
+                problems.push("Could not get product from remote: " + product.pid);
                 console.warn(e)
             }
             if ($.isEmptyObject(remote)) {
-                console.info("Product with pid: " + product.pid + " does not exist on remote, it will be added now.")
+                console.info("Product with pid: " + product.pid + " does not exist on remote, it will be added now.");
                 try {
                     yield EmagTrackerAPI.addProduct(product)
                 } catch (e) {
-                    problems.push("Could not push product to remote: " + product.pid)
+                    problems.push("Could not push product to remote: " + product.pid);
                     console.warn(e)
                 }
             } else if (onlineData) {
-                product = remote
+                product = remote;
                 // update price history for remote if it hasn't been done already
                 if (product.history && !product.history[now])
                     yield EmagTrackerAPI.updatePrice(product.pid, product.price)
             }
 
             if (!product.history)
-                product.history = {}
-            product.history[now] = product.price
+                product.history = {};
+            product.history[now] = product.price;
 
             try {
                 StorageAPI.setLocal(getProductObject(product))
             } catch (e) {
-                problems.push("Could not save product to local store: " + product.pid)
+                problems.push("Could not save product to local store: " + product.pid);
                 console.warn(e)
             }
 
             try {
                 yield StorageAPI.setSync(getProductObject(product, true))
             } catch (e) {
-                problems.push("Could not save product to sync store: " + product.pid)
+                problems.push("Could not save product to sync store: " + product.pid);
                 console.warn(e)
             }
 
             if (productProblems.length)
-                problems.concat(productProblems)
+                problems.concat(productProblems);
             else
                 pids.push(product.pid)
         }
@@ -95,21 +95,21 @@ const track = (products, onlineData) =>
             problems,
             pids
         }
-    })
+    });
 
 const _percentage = (a, b) =>
-    parseInt(a/b*100%100)
+    parseInt(a/b*100%100);
 
 const checkPriceChange = (product, changeType) => {
-    const history = Object.keys(product.history).map(k => product.history[k])
+    const history = Object.keys(product.history).map(k => product.history[k]);
     if (history.length > 1) {
         const newPrice = Number(history.pop()),
-            oldPrice = Number(history.pop())
+            oldPrice = Number(history.pop());
         if (changeType === PRICE_INCREASE && newPrice > oldPrice)
-            return _percentage(newPrice, oldPrice)
+            return _percentage(newPrice, oldPrice);
         else if (changeType === PRICE_DECREASE && newPrice < oldPrice)
             return _percentage(oldPrice, newPrice)
     }
-}
+};
 
 export { track, updatePrice, checkPriceChange }
