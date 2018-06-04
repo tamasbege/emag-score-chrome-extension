@@ -19,20 +19,20 @@ export default class ProductPage extends Base {
         })
     }
     _extractPid() {
-        this.data.pid = this.$container.find("input[type='hidden']").first().val()
+        this.data.pid = this.$container.find("input[type='hidden']").first().val();
         if (!this.data.pid)
             throw new Error("pid not found")
     }
     _extractLink() {
         const link = $(".page-title"),
-            imageLink = $("img", $("#product-gallery")).first()
+            imageLink = $("img", $("#product-gallery")).first();
         if (link.length) {
-            this.data.title = link.text().trim()
-            this.data.url = location.href
+            this.data.title = link.text().trim();
+            this.data.url = location.href;
             if (imageLink.length) {
-                let imageLinkUrl = imageLink.attr("src")
+                let imageLinkUrl = imageLink.attr("src");
                 if (imageLinkUrl)
-                    this.data.imgUrl = imageLinkUrl
+                    this.data.imgUrl = imageLinkUrl;
                 else
                     imageLink.on('load',() => this.data.imgUrl = imageLink.attr("src"))
             }

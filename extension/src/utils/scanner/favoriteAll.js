@@ -10,11 +10,11 @@ export default class FavoriteAll extends Base {
         })
     }
     _trackProductDone() {
-        $("#track-all-row", this.$container).remove()
+        $("#track-all-row", this.$container).remove();
         $(".add-to-price-checker", this.$container).remove()
     }
     _addTrackButton() {
-        const toolbox = $("#wishlistActions", this.$container).first()
+        const toolbox = $("#wishlistActions", this.$container).first();
         if (toolbox.length) {
             this.$source = $('<button/>', {
                 type: "button",
@@ -22,7 +22,7 @@ export default class FavoriteAll extends Base {
                 class: this.sourceClass,
                 click: e => this._trackProduct(e.currentTarget)
             })
-            .append(this._icon())
+            .append(this._icon());
 
             $('<div>', {
                 id: "track-all-row",
