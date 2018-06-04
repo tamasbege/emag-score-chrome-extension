@@ -13,6 +13,40 @@ admin.initializeApp();
  */
 
 /**
+ * Returns a product based on the pid from the query parameters.
+ * @type {HttpsFunction}
+ */
+exports.getProduct = functions.https.onRequest((req, res) => {
+    if (req.method === `OPTIONS`) {
+        cors(req, res, () => {
+            return res.status(200)
+                .set('Access-Control-Allow-Origin', "*")
+                .set('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS')
+                .set('Access-Control-Allow-Headers', 'Origin, Content-Type, Accept, Authorization, X-Request-With')
+                .json({
+                    message: "Hello from Firebase"
+                });
+        });
+    } else if (req.method !== 'GET') {
+        return res.status(500)
+            .json({
+                message: `The method ${req.method} is not allowed for reading!`
+            })
+    }
+    return admin.database().ref(`/${req.query.pid}`)
+        .once('value')
+        .then(function (snapshot) {
+            if (snapshot) {
+                console.info(`Product with PID ${req.query.pid} was read`);
+                res.json(JSON.stringify(snapshot));
+            } else {
+                console.warn(`There is no product with the PID ${req.query.pid}`);
+            }
+            return res;
+        });
+});
+
+/**
  * Adds a new product to the database.
  * It checks the important properties of the product before saving.
  * @type {HttpsFunction}
@@ -31,15 +65,16 @@ exports.addProduct = functions.https.onRequest((req, res) => {
     } else if (req.method !== 'POST') {
         return res.status(500)
             .json({
-                message: `The method ${req.method} is not allowed!`
+                message: `The method ${req.method} is not allowed for writing!`
             })
     }
     const product = JSON.parse(JSON.stringify(req.body));
+    console.info(`Received the product with \n PID ${product.pid} \n title ${product.title} \n URL ${product.url} \n imgURL ${product.imgUrl} \n price ${product.price}`);
     const history = {};
     const currentDate = new Date().setHours(0, 0, 0, 0) / 100000;
     if (testPid(product.pid) && product.title && product.title.length < 512 && testPrice(product.price) && testProductUrl(product.url) && testImageUrl(product.imgUrl)) {
         history[currentDate] = product.price;
-        return admin.database().ref(`/${product.pid}`)
+        admin.database().ref(`/${product.pid}`)
             .set({
                 title: product.title,
                 url: product.url,
@@ -52,15 +87,70 @@ exports.addProduct = functions.https.onRequest((req, res) => {
                         message: 'Product could not be saved.'
                     })
                 } else {
-                    console.info(`Product with id ${product.pid} and price ${product.price} saved.`);
+                    console.info(`Product with PID ${product.pid} and price ${product.price} was saved.`);
                     res.status(200).json({
-                        message: 'Product was saved.'
+                        status: 'ok'
                     })
                 }
-            });
+            })
     } else {
         console.warn('Validation error');
+        res.status(500).json({
+            message: 'Validation error, please check the data!'
+        })
     }
+    return res;
+});
+
+/**
+ * Updates the price of a product if it is not already in the database.
+ * @type {HttpsFunction}
+ */
+exports.updateProduct = functions.https.onRequest((req, res) => {
+    if (req.method === `OPTIONS`) {
+        cors(req, res, () => {
+            return res.status(200)
+                .set('Access-Control-Allow-Origin', "*")
+                .set('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS')
+                .set('Access-Control-Allow-Headers', 'Origin, Content-Type, Accept, Authorization, X-Request-With')
+                .json({
+                    message: "Hello from Firebase"
+                });
+        });
+    } else if (req.method !== 'POST') {
+        return res.status(500)
+            .json({
+                message: `The method ${req.method} is not allowed for writing!`
+            })
+    }
+    const product = JSON.parse(JSON.stringify(req.body));
+    console.info(`Received product for update with PID ${product.pid} and price ${product.newPrice}`);
+    const currentDate = new Date().setHours(0, 0, 0, 0) / 100000;
+    console.info(currentDate);
+    if (testPid(product.pid) && testPrice(product.newPrice)) {
+        console.info(`Updating the price for PID ${product.pid} to ${product.newPrice}`);
+        const updates = {};
+        updates[`${product.pid}/history/${currentDate}`] = product.newPrice;
+        admin.database().ref().update(updates, function (error) {
+            if (error) {
+                console.error('An error occurred: ' + error);
+                res.status(500).json({
+                    message: 'Product could not be updated.'
+                })
+            } else {
+                console.info(`Product with PID ${product.pid} and price ${product.newPrice} was updated.`);
+                res.json({
+                    status: 'ok'
+                })
+            }
+        });
+    } else {
+        console.warn('Validation error');
+        res.status(500).json({
+            message: 'Validation error, please check the data!'
+        })
+    }
+    return res;
 });
 
 /*
