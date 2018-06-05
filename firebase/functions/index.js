@@ -36,9 +36,14 @@ exports.getProduct = functions.https.onRequest((req, res) => {
     return admin.database().ref(`/${req.query.pid}`)
         .once('value')
         .then(function (snapshot) {
+            console.log(snapshot.val());
             if (snapshot) {
-                console.info(`Product with PID ${req.query.pid} was read`);
-                res.json(JSON.stringify(snapshot));
+                console.info(`Product with PID ${req.query.pid} was read.`);
+                let result = snapshot.val();
+                if (result) {
+                    result['pid'] = req.query.pid;
+                }
+                res.json(result);
             } else {
                 console.warn(`There is no product with the PID ${req.query.pid}`);
             }
@@ -68,8 +73,8 @@ exports.addProduct = functions.https.onRequest((req, res) => {
                 message: `The method ${req.method} is not allowed for writing!`
             })
     }
-    const product = JSON.parse(JSON.stringify(req.body));
-    console.info(`Received the product with \n PID ${product.pid} \n title ${product.title} \n URL ${product.url} \n imgURL ${product.imgUrl} \n price ${product.price}`);
+    const product = req.body;
+    console.log(product);
     const history = {};
     const currentDate = new Date().setHours(0, 0, 0, 0) / 100000;
     if (testPid(product.pid) && product.title && product.title.length < 512 && testPrice(product.price) && testProductUrl(product.url) && testImageUrl(product.imgUrl)) {
@@ -123,10 +128,9 @@ exports.updateProduct = functions.https.onRequest((req, res) => {
                 message: `The method ${req.method} is not allowed for writing!`
             })
     }
-    const product = JSON.parse(JSON.stringify(req.body));
-    console.info(`Received product for update with PID ${product.pid} and price ${product.newPrice}`);
+    const product = req.body;
+    console.log(product);
     const currentDate = new Date().setHours(0, 0, 0, 0) / 100000;
-    console.info(currentDate);
     if (testPid(product.pid) && testPrice(product.newPrice)) {
         console.info(`Updating the price for PID ${product.pid} to ${product.newPrice}`);
         const updates = {};

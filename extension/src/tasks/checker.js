@@ -23,8 +23,6 @@ const updateProductsPrice = ({ onlineData, notify, variationType, responseCallba
         const date = yield StorageAPI.getSync('lastCheck');
         const now = today();
 
-        console.log(`---- scheduled check started ${now}, last check was on ${date}`);
-
         if (now !== date.lastCheck) {
             updateStartingPoint(now, notify);
 
@@ -35,7 +33,6 @@ const updateProductsPrice = ({ onlineData, notify, variationType, responseCallba
                 if (onlineData) {
                     // if user favors online data, always load from remote first
                     product = yield EmagTrackerAPI.getProduct(pid);
-                    console.log(`---- loaded the product with pid ${product.pid}`);
                     if ($.isEmptyObject(product)) {
                         product = yield StorageAPI.getLocal(pid);
                         if ($.isEmptyObject(product))
@@ -57,7 +54,6 @@ const updateProductsPrice = ({ onlineData, notify, variationType, responseCallba
                 else {
                     yield Scanner.scanProductHomepage(product, onlineData);
                     const percentage = checkPriceChange(product, variationType);
-                    console.log(`---- new percentage is ${percentage}`);
                     if (percentage) {
                         changed.push(pid);
                         if (notify)

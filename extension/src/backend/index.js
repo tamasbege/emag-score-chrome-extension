@@ -1,8 +1,5 @@
 const firebaseCloudUrl = "https://us-central1-emag-price-tracker.cloudfunctions.net/";
 const EmagTrackerAPI = {
-    getFireBaseUrl() {
-        return "https://us-central1-emag-price-tracker.cloudfunctions.net/";
-    },
     getProduct(pid) {
         return $.get(firebaseCloudUrl + "getProduct?pid=" + pid);
     },
@@ -11,13 +8,13 @@ const EmagTrackerAPI = {
             url: firebaseCloudUrl + "addProduct",
             type: "POST",
             contentType: "application/json",
-            data: JSON.stringify({
-                "pid": product.pid,
-                "title": product.title,
-                "url": product.url,
-                "imgUrl": product.imgUrl,
-                "price": product.price
-            })
+            data: {
+                pid: product.pid,
+                title: product.title,
+                url: product.url,
+                imgUrl: product.imgUrl,
+                price: product.price
+            }
         });
     },
     updatePrice(pid, newPrice) {
@@ -25,10 +22,10 @@ const EmagTrackerAPI = {
             url: firebaseCloudUrl + 'updateProduct',
             type: "POST",
             contentType: "application/json",
-            data: JSON.stringify({
+            data: {
                 pid: pid,
                 newPrice: newPrice
-            })
+            }
         });
     }
 };
