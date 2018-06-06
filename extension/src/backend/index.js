@@ -8,12 +8,15 @@ const EmagTrackerAPI = {
             url: firebaseCloudUrl + "addProduct",
             type: "POST",
             contentType: "application/json",
-            data: {
+            data: JSON.stringify({
                 pid: product.pid,
                 title: product.title,
                 url: product.url,
                 imgUrl: product.imgUrl,
                 price: product.price
+            }),
+            headers: {
+                'Content-Type': 'application/json'
             }
         });
     },
@@ -25,7 +28,10 @@ const EmagTrackerAPI = {
             data: JSON.stringify({
                 pid: pid,
                 newPrice: newPrice
-            })
+            }),
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
     }
 };

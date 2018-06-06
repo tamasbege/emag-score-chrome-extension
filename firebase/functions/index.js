@@ -36,17 +36,19 @@ exports.getProduct = functions.https.onRequest((req, res) => {
     return admin.database().ref(`/${req.query.pid}`)
         .once('value')
         .then(function (snapshot) {
-            console.log(snapshot.val());
-            if (snapshot) {
-                console.info(`Product with PID ${req.query.pid} was read.`);
+            res.setHeader('Content-Type', 'application/json');
+            if (snapshot && snapshot.val()) {
                 let result = snapshot.val();
+                console.log('----');
+                console.log(result);
+                console.log('----');
                 if (result) {
                     result['pid'] = req.query.pid;
                 }
-                res.setHeader('Content-Type', 'application/json');
                 res.json(result);
             } else {
                 console.warn(`There is no product with the PID ${req.query.pid}`);
+                res.json({});
             }
             return res;
         });
@@ -75,7 +77,9 @@ exports.addProduct = functions.https.onRequest((req, res) => {
             })
     }
     const product = JSON.parse(JSON.stringify(req.body));
+    console.log('----');
     console.log(product);
+    console.log('----');
     const history = {};
     const currentDate = new Date().setHours(0, 0, 0, 0) / 100000;
     if (testPid(product.pid) && product.title && product.title.length < 512 && testPrice(product.price) && testProductUrl(product.url) && testImageUrl(product.imgUrl)) {
@@ -87,6 +91,7 @@ exports.addProduct = functions.https.onRequest((req, res) => {
                 imgUrl: product.imgUrl,
                 history: history
             }, function (error) {
+                res.setHeader('Content-Type', 'application/json');
                 if (error) {
                     console.error('An error occurred: ' + error);
                     res.status(500).json({
@@ -95,7 +100,7 @@ exports.addProduct = functions.https.onRequest((req, res) => {
                 } else {
                     console.info(`Product with PID ${product.pid} and price ${product.price} was saved.`);
                     res.status(200).json({
-                        status: 'ok'
+                        message: 'Product was saved.'
                     })
                 }
             })
@@ -130,13 +135,16 @@ exports.updateProduct = functions.https.onRequest((req, res) => {
             })
     }
     const product = JSON.parse(JSON.stringify(req.body));
+    console.log('----');
     console.log(product);
+    console.log('----');
     const currentDate = new Date().setHours(0, 0, 0, 0) / 100000;
     if (testPid(product.pid) && testPrice(product.newPrice)) {
         console.info(`Updating the price for PID ${product.pid} to ${product.newPrice}`);
         const updates = {};
         updates[`${product.pid}/history/${currentDate}`] = product.newPrice;
         admin.database().ref().update(updates, function (error) {
+            res.setHeader('Content-Type', 'application/json');
             if (error) {
                 console.error('An error occurred: ' + error);
                 res.status(500).json({
