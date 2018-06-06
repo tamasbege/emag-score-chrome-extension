@@ -43,6 +43,7 @@ exports.getProduct = functions.https.onRequest((req, res) => {
                 if (result) {
                     result['pid'] = req.query.pid;
                 }
+                res.setHeader('Content-Type', 'application/json');
                 res.json(result);
             } else {
                 console.warn(`There is no product with the PID ${req.query.pid}`);
@@ -73,7 +74,7 @@ exports.addProduct = functions.https.onRequest((req, res) => {
                 message: `The method ${req.method} is not allowed for writing!`
             })
     }
-    const product = req.body;
+    const product = JSON.parse(JSON.stringify(req.body));
     console.log(product);
     const history = {};
     const currentDate = new Date().setHours(0, 0, 0, 0) / 100000;
@@ -128,7 +129,7 @@ exports.updateProduct = functions.https.onRequest((req, res) => {
                 message: `The method ${req.method} is not allowed for writing!`
             })
     }
-    const product = req.body;
+    const product = JSON.parse(JSON.stringify(req.body));
     console.log(product);
     const currentDate = new Date().setHours(0, 0, 0, 0) / 100000;
     if (testPid(product.pid) && testPrice(product.newPrice)) {
