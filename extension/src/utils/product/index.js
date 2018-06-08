@@ -11,7 +11,7 @@ import { PRICE_INCREASE, PRICE_DECREASE } from "./priceChangeType"
  * @param product current product
  * @param price the new price
  */
-const updatePrice = (product, price) => {
+const updateLocalPrice = (product, price) => {
     if (!product.history)
         product.history = {};
     product.history[today()] = price;
@@ -112,4 +112,4 @@ const checkPriceChange = (product, changeType) => {
     }
 };
 
-export { track, updatePrice, checkPriceChange }
+export { track, updateLocalPrice, checkPriceChange }
