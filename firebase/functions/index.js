@@ -117,7 +117,7 @@ exports.addProduct = functions.https.onRequest((req, res) => {
  * Updates the price of a product if it is not already in the database.
  * @type {HttpsFunction}
  */
-exports.updateProduct = functions.https.onRequest((req, res) => {
+exports.updateSingleProduct = functions.https.onRequest((req, res) => {
     if (req.method === `OPTIONS`) {
         cors(req, res, () => {
             return res.status(200)
@@ -163,6 +163,58 @@ exports.updateProduct = functions.https.onRequest((req, res) => {
             message: 'Validation error, please check the data!'
         })
     }
+    return res;
+});
+
+exports.updateMultipleProducts = functions.https.onRequest((req, res) => {
+    if (req.method === `OPTIONS`) {
+        cors(req, res, () => {
+            return res.status(200)
+                .set('Access-Control-Allow-Origin', "*")
+                .set('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS')
+                .set('Access-Control-Allow-Headers', 'Origin, Content-Type, Accept, Authorization, X-Request-With')
+                .json({
+                    message: "Hello from Firebase"
+                });
+        });
+    } else if (req.method !== 'POST') {
+        return res.status(500)
+            .json({
+                message: `The method ${req.method} is not allowed for writing!`
+            })
+    }
+    const productPrices = JSON.parse(JSON.stringify(req.body));
+    console.log('-- new prices --');
+    console.log(productPrices);
+    console.log('-- new prices --');
+    const currentDate = new Date().setHours(0, 0, 0, 0) / 100000;
+    let updates = {};
+    for (let pid of Object.keys(productPrices)) {
+        let price = productPrices[pid];
+        console.info(`Updating the price for PID ${pid} to ${price}`);
+        if (testPid(pid) && testPrice(price)) {
+            updates[`${pid}/history/${currentDate}`] = price;
+        } else {
+            console.warn('Validation error');
+            res.status(500).json({
+                message: 'Validation error, please check the data!'
+            })
+        }
+    }
+    admin.database().ref().update(updates, function (error) {
+        res.setHeader('Content-Type', 'application/json');
+        if (error) {
+            console.error('An error occurred: ' + error);
+            res.status(500).json({
+                message: 'The update could not be carried out.'
+            })
+        } else {
+            console.info(`Products updated.`);
+            res.json({
+                message: 'ok'
+            })
+        }
+    });
     return res;
 });
 

@@ -22,7 +22,7 @@ const EmagTrackerAPI = {
     },
     updatePrice(pid, newPrice) {
         return $.ajax({
-            url: firebaseCloudUrl + 'updateProduct',
+            url: firebaseCloudUrl + 'updateSingleProduct',
             type: "POST",
             contentType: "application/json",
             data: JSON.stringify({
@@ -33,6 +33,17 @@ const EmagTrackerAPI = {
                 'Content-Type': 'application/json'
             }
         });
+    },
+    updateMultiplePrices(updates) {
+        return $.ajax({
+            url: firebaseCloudUrl + 'updateMultipleProducts',
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(updates),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
     }
 };
 

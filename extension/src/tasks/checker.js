@@ -7,6 +7,7 @@ import { Scanner } from "../utils/scanner"
 import { checkPriceChange } from "../utils/product"
 import { adapt, clean } from "../utils/settings"
 import { bagdeBackgroundColor } from "../utils/notifications"
+import { updateLocalPrice } from "../utils/product"
 
 const alarmName = 'priceChecker';
 
@@ -28,6 +29,7 @@ const updateProductsPrice = ({ onlineData, notify, variationType, responseCallba
 
             const changed = [];
             const pids = clean(yield StorageAPI.getSync(null));
+            let updates = {};
             for (const pid of Object.keys(pids)) {
                 let product;
                 if (onlineData) {
@@ -52,25 +54,38 @@ const updateProductsPrice = ({ onlineData, notify, variationType, responseCallba
                 if ($.isEmptyObject(product))
                     console.warn("Checker did not find product with pid: " + pid);
                 else {
-                    yield Scanner.scanProductHomepage(product, onlineData);
+                    // scan the product page and extract the new price
+                    let newPrice = yield Scanner.scanProductHomepage(product, onlineData);
+                    // update price for local product in the Chrome Storage
+                    updateLocalPrice(product, newPrice, onlineData);
+                    // push the new price to the updates object which will be given to the updater
+                    updates[product.pid] = newPrice;
                     const percentage = checkPriceChange(product, variationType);
                     if (percentage) {
                         changed.push(pid);
-                        if (notify)
+                        if (notify) {
                             NotificationsAPI.info('scan.title', 'scan.priceChanged.' + variationType, {
                                 pid,
                                 title: shortenString(product.title),
                                 variation: percentage
                             }, pid);
+                        }
                         NotificationsAPI.badgeColor(bagdeBackgroundColor(variationType));
                         NotificationsAPI.incrementBadgeCounter()
                     }
                 }
             }
 
+            try {
+                yield EmagTrackerAPI.updateMultiplePrices(updates);
+            } catch (e) {
+                console.warn('Update could not be carried out', e);
+            }
+
             let variation;
-            if (changed.length)
+            if (changed.length) {
                 variation = variationType;
+            }
             StorageAPI.setLocal({
                 trending: { variation, changed }
             });
