@@ -14,8 +14,9 @@ export default class Favorite extends Base {
     _extractPid() {
         this.data.pid = this.$container.find("input[name='service_parrent_id']").first().val()
             || $("form.spi-buy", this.$container).find("input[type='hidden']").first().val();
-        if (!this.data.pid)
-            throw new Error("pid not found")
+        if (!this.data.pid) {
+            console.warn(`Could not extract PID for ${this.$container.find("div[class='product-title']")[0].innerText}`)
+        }
     }
     _extractLink() {
         const link = this.$container.find("a"),
